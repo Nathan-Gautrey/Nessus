@@ -10,6 +10,30 @@
 #Imports
 import csv
 import xlsxwriter
+## cli arguments and options
+import argparse
+import os.path
+
+############################# Menu ############################
+
+#Check file extension is a .csv
+#return filename e.g. nessus.csv
+
+def valid_input_file(s):
+    if not s.endswith('.csv'):
+        raise argparse.ArgumentTypeError("Not a valid file extension")
+    return(os.path.basename(s))
+
+#Create the parser and set the type to the function
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--inputfile", "-i", help="Input file .cvs", type=valid_input_file)
+args = parser.parse_args()
+
+#args variable holds the result of the inputfile name
+#create an output filename from the input
+
+outputfile = os.path.splitext(args.inputfile)[0] + ".xlsx"
 
 
 ############################# Objects #############################
@@ -45,7 +69,7 @@ class vulnerability:
 
 
 #Open csv file
-reader = csv.DictReader(open('test_scan_900z53.csv', 'r'))
+reader = csv.DictReader(open(args.inputfile, 'r'))
 csv_dict_list = []
 
 #Loop through csv file and create a new dict for each row
@@ -93,7 +117,7 @@ for line in csv_dict_list:
 
 
 #xlsx output  
-workbook = xlsxwriter.Workbook('nessus-csv-obj-output.xlsx')
+workbook = xlsxwriter.Workbook(outputfile)
 worksheet = workbook.add_worksheet()
 worksheet.set_column(2, 2, 30)  # Width of column B set to 30.
 worksheet.set_column(3, 3, 120)  # Width of column B set to 30.
