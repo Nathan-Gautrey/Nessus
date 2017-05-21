@@ -5,7 +5,11 @@
 
 #To Do
 #pep8 looks at the code readability
-
+#V1
+#V2
+##Changes Synopsis for Solution in output xlsx
+##Colours Background of Risk box based upon risk
+##
 
 #Imports
 import csv
@@ -41,7 +45,7 @@ outputfile = os.path.splitext(args.inputfile)[0] + ".xlsx"
 
 class vulnerability:
     
-    def __init__(self, pluginid, plugin_name, cve, cvss, risk, synopsis):
+    def __init__(self, pluginid, plugin_name, cve, cvss, risk, solution):
         self.pluginid = pluginid
         self.plugin_name = plugin_name
         self.cve = cve
@@ -49,7 +53,7 @@ class vulnerability:
             self.cve = "N/A"
         self.cvss = cvss
         self.risk = risk
-        self.synopsis = synopsis
+        self.solution = solution
         self.service = []
 
     def addservice(self,host,service,protocol):
@@ -101,7 +105,7 @@ detected_vulnerabilities_list = []
 for id in pluginid_set:
     for line in csv_dict_list:
         if id == line["Plugin ID"]:
-            detected_vulnerability = vulnerability(line["Plugin ID"],line["Name"],line["CVE"],line["CVSS"],line["Risk"],line["Synopsis"])
+            detected_vulnerability = vulnerability(line["Plugin ID"],line["Name"],line["CVE"],line["CVSS"],line["Risk"],line["Solution"])
             detected_vulnerabilities_list.append(detected_vulnerability)
             break 
 
@@ -132,6 +136,28 @@ italic = workbook.add_format({'italic': True})
 gray = workbook.add_format({'color': 'gray'})
 blue = workbook.add_format({'color': 'blue'})
 
+# Make sure risk background colours
+format_risk_bg_red = workbook.add_format()
+format_risk_bg_red.set_pattern(1)  # This is optional when using a solid fill.
+format_risk_bg_red.set_bg_color('red')
+
+format_risk_bg_orange = workbook.add_format()
+format_risk_bg_orange.set_pattern(1)  # This is optional when using a solid fill.
+format_risk_bg_orange.set_bg_color('orange')
+
+format_risk_bg_yellow = workbook.add_format()
+format_risk_bg_yellow.set_pattern(1)  # This is optional when using a solid fill.
+format_risk_bg_yellow.set_bg_color('yellow')
+
+format_risk_bg_green = workbook.add_format()
+format_risk_bg_green.set_pattern(1)  # This is optional when using a solid fill.
+format_risk_bg_green.set_bg_color('green')
+
+format_risk_bg_blue = workbook.add_format()
+format_risk_bg_blue.set_pattern(1)  # This is optional when using a solid fill.
+format_risk_bg_blue.set_bg_color('blue')
+
+
 #Set Headers
 xlsx_header_row = ('Risk', 'Plugin ID', 'Service', 'Detected Vulnerability')
 worksheet.write_row(1, 0, xlsx_header_row,bold)
@@ -146,10 +172,21 @@ worksheet.write_row(1, 0, xlsx_header_row,bold)
 # Write output to the Xlsx workbook
 
 for detected_vulnerability in detected_vulnerabilities_list:
-    worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk)
+
+    if detected_vulnerability.risk == "Critical":
+        worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk, format_risk_bg_red)
+    elif detected_vulnerability.risk == "High":
+        worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk, format_risk_bg_orange)
+    elif detected_vulnerability.risk == "Medium":
+        worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk, format_risk_bg_yellow)  
+    elif detected_vulnerability.risk == "Low":
+          worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk, format_risk_bg_green)
+    elif detected_vulnerability.risk == "None":
+          worksheet.write_rich_string(index_row, 0, detected_vulnerability.risk, format_risk_bg_blue)
+          
     worksheet.write_rich_string(index_row, 1, detected_vulnerability.pluginid)
-    worksheet.write_rich_string(index_row, 2, detected_vulnerability.host_service(), format)
-    worksheet.write_rich_string(index_row, 3, bold, detected_vulnerability.plugin_name + "\n", blue, detected_vulnerability.cve + "\n", gray, detected_vulnerability.synopsis, format)
+    worksheet.write_rich_string(index_row, 2, bold, detected_vulnerability.plugin_name + "\n", blue, detected_vulnerability.cve + "\n", gray, detected_vulnerability.solution, format)
+    worksheet.write_rich_string(index_row, 3, detected_vulnerability.host_service(), format)
     index_row += 1 # incremember xlsx file row by 1
 
        
